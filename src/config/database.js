@@ -1,12 +1,14 @@
 import mongoose from "mongoose";
 
-export const connectDB = async () => {
+const starDB = async () => {
     try {
-        await mongoose.connect("mongodb://127.0.0.1:27017/mydatabase");
-        // para borrar toda la base de datos
-        // await mongoose.connection.dropDatabase();
-        console.log("Conectado a la base de datos");
+        await mongoose.connect(process.env.MONGODB_URI);
+        console.log("DB connected");
+        // await mongoose.connection.dropDatabase()
     } catch (error) {
-        console.log("No se pudo conectar a la base de datos", error);
+        console.log("Error al conectar a la DB:", error);
+        throw new Error(error);
     }
 };
+
+export default starDB;
