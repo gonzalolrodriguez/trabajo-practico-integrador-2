@@ -1,61 +1,208 @@
-# Sistema de Gestión de Blog Personal
+## Jusfitifación
 
-## Estructura del Proyecto
+**users, articles, comments y tags**
 
-- `src/config`: Configuración y conexión a MongoDB
-- `src/models`: Modelos Mongoose (User, Article, Tag, Comment)
-- `src/routes`: Rutas de la API
-- `src/controllers`: Lógica de negocio y controladores
-- `src/middlewares`: Middlewares de autenticación, autorización y validaciones
-- `src/helpers`: Utilidades para JWT y bcrypt
+- **articles**: referencian al autor (`User`) y a los tags mediante ObjectId. Permite reutilizar usuarios y tags en múltiples artículos, facilita la consulta y mantiene la integridad.
 
-## Relaciones
+  **Ventajas**:
 
-- **Embebida**: El perfil de usuario está embebido en el modelo User (1:1). Ventaja: acceso rápido, desventaja: no reutilizable.
-- **Referenciada**: Artículos y comentarios referencian a User y Article respectivamente (1:N). Ventaja: escalabilidad, desventaja: requiere populate.
-- **N:M**: Artículos y etiquetas (Tag) usan referencias (array de ObjectId). Ventaja: flexibilidad, desventaja: gestión de arrays.
+  - Evita duplicidad de datos.
+  - Permite actualizar usuarios/tags en un solo lugar.
+  - Escalabilidad para grandes volúmenes.
 
-## Endpoints principales
+  **Desventajas**:
 
-- `/api/auth/register` (POST): Registro de usuario
-- `/api/auth/login` (POST): Login
-- `/api/auth/profile` (GET/PUT): Obtener/actualizar perfil
-- `/api/auth/logout` (POST): Logout
-- `/api/users` (GET): Listar usuarios (admin)
-- `/api/users/:id` (GET/PUT/DELETE): Operaciones sobre usuario (admin)
-- `/api/articles` (CRUD): Artículos
-- `/api/comments` (CRUD): Comentarios
-- `/api/tags` (CRUD): Etiquetas
+  - Requiere consultas adicionales (populate) para obtener datos completos.
 
-## Instalación y configuración
+- **Comments**: referencian al autor y al artículo. Un comentario pertenece a un usuario y a un artículo, pero los usuarios y artículos pueden tener muchos comentarios.
 
-1. Clonar el repositorio
-2. Instalar dependencias: `npm install`
-3. Configurar `.env` con variables:
-   - `MONGODB_URI`
-   - `JWT_SECRET`
-   - `PORT`
-4. Iniciar el servidor: `npm run dev`
+  **Ventajas**:
+
+  - Relación flexible y escalable.
+  - Permite eliminar comentarios sin afectar usuarios/artículos.
+
+  **Desventaja**:
+
+  - Consultas más complejas si se requiere información completa.
+
+- **tags**: referenciados en artículos. Los tags pueden ser usados en muchos artículos.  
+  **Ventaja**:
+  - Reutilización y gestión centralizada.
+    **Desventaja**:
+  - Requiere consulta adicional para obtener el nombre/descripción del tag.
+
+**No se usó embebido** porque las relaciones son de tipo muchos-a-muchos o uno-a-muchos, y se busca flexibilidad y escalabilidad.
+
+---
+
+## Documentación de Endpoints
+
+### Registro de usuario
+
+**POST /api/auth/register**
+
+```json
+{
+  "username": "usuario1",
+  "email": "usuario1@example.com",
+  "password": "User123",
+  "profile": {
+    "first_name": "John",
+    "last_name": "Perez"
+  }
+}
+```
+
+**Response:**
+
+```json
+{
+	"ok": true,
+	"msg": "Usuario creado",
+	"data": { ... }
+}
+```
+
+### Login
+
+**POST /api/auth/login**
+
+```json
+{
+  "email": "usuario1@example.com",
+  "password": "User123"
+}
+```
+
+**Response:**
+
+```json
+{
+  "ok": true,
+  "token": "..."
+}
+```
+
+### Crear artículo
+
+**POST /api/articles** (requiere el token)
+
+```json
+{
+  "title": "React Native",
+  "content": "En este apartado...",
+  "tags": ["dev", "swe"]
+}
+```
+
+**Response:**
+
+```json
+{
+	"ok": true,
+	"data": { ... }
+}
+```
+
+### Editar artículo
+
+**PATCH /api/articles/:id** (requiere token)
+
+```json
+{
+  "title": "TSDSM",
+  "content": "Nuevo contenido..."
+}
+```
+
+**Response:**
+
+```json
+{
+	"ok": true,
+	"data": { ... }
+}
+```
+
+### Crear comentario
+
+**POST /api/comments** (requiere token)
+
+```json
+{
+  "articleId": "id_articulo",
+  "content": "Gran artículo sobre innovación."
+}
+```
+
+**Response:**
+
+```json
+{
+	"ok": true,
+	"data": { ... }
+}
+```
+
+### Crear tag
+
+**POST /api/tags** (requiere el token)
+
+```json
+{
+  "name": "apple"
+}
+```
+
+**Response:**
+
+```json
+{
+	"ok": true,
+	"data": { ... }
+}
+```
+
+---
+
+## Instrucciones de instalación y configuración
+
+1. Cloná el repositorio:
+   ```
+   git clone <https://github.com/gonzalolrodriguez/trabajo-practico-integrador-2.git>
+   cd trabajo-practico-integrador-2
+   ```
+2. Instalá las dependencias:
+   ```
+   npm install
+   ```
+3. Configurá el archivo `.env` con tus variables de entorno (ejemplo: conexión a MongoDB).
+4. Iniciá el servidor:
+   ```
+   npm run dev
+   ```
+5. Accedé a la API en `http://localhost:3000`.
+
+---
 
 ## Validaciones personalizadas
 
-- Unicidad de username/email solo si el usuario no está eliminado
-- Validación de ObjectId en params y body
-- Validación de campos obligatorios y formatos
-- Solo el autor o admin puede editar/eliminar recursos
-- Eliminación lógica en User, en cascada en Article y Tag
+- **Usuario**:
 
-## Ejemplo de request/response
+  - `username`: solo letras y números, longitud 3-20.
+  - `email`: formato válido y único.
+  - `profile.firstName` y `profile.lastName`: solo letras, longitud 2-50.
 
-```json
-POST /api/auth/register
-{
-	"username": "usuario1",
-	"email": "usuario1@mail.com",
-	"password": "Password123",
-	"profile": {
-		"firstName": "Juan",
-		"lastName": "Pérez"
-	}
-}
-```
+- **Artículo**:
+
+  - `title`: mínimo 3 caracteres.
+  - `content`: mínimo 50 caracteres.
+
+- **Comentario**:
+
+  - `content`: mínimo 5 caracteres.
+
+- **Tag**:
+  - `name`: sin espacios, mínimo 2 caracteres.
+
+Las validaciones se implementan en los modelos de Mongoose y en los middlewares de validación.

@@ -6,6 +6,7 @@ import {
     register,
     updateProfile,
 } from "../controllers/auth.controller.js";
+
 import {
     profileUpdateValidations,
     registerCreateValidations,
@@ -20,7 +21,7 @@ routerAuth.post(
     registerCreateValidations,
     applyValidation,
     register
-);
+); //(solo admin)
 routerAuth.post("/auth/login", login);
 
 routerAuth.get("/auth/profile", authMiddleware, getProfile);

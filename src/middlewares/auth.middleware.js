@@ -4,7 +4,7 @@ import { UserModel } from "../models/user.model.js";
 export const authMiddleware = async (req, res, next) => {
     try {
         // Busca el token en cookies y en header Authorization
-        const token = req.cookies.token;
+        let token = req.cookies.token;
         if (!token && req.headers.authorization) {
             const authHeader = req.headers.authorization;
             if (authHeader.startsWith('Bearer ')) {
@@ -16,7 +16,7 @@ export const authMiddleware = async (req, res, next) => {
             return res.status(401).json({ ok: false, msg: "Token no proporcionado" });
         }
 
-        const decoded = verifyToken(token);
+        let decoded = verifyToken(token);
 
         try {
             decoded = verifyToken(token);

@@ -8,12 +8,12 @@ import router from "./src/routes/index.js";
 const app = express();
 const PORT = process.env.PORT;
 
-// middlewares
+//middleware
 app.use(express.json());
 app.use(cors());
-app.use(cookieParser()); //para poder leer las cookies
+app.use(cookieParser()); //lee las cookies
 
-// rutas
+//rutas
 app.use("/api", router);
 
 app.listen(PORT, async () => {
