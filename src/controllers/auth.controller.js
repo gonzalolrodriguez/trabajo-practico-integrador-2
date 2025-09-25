@@ -1,25 +1,27 @@
 import { matchedData } from "express-validator";
 import { UserModel } from "../models/user.model.js";
-import { comparePassword, hashPassword } from "../helpers/bcrypt.helper.js";
-import { generateToken } from "../helpers/jwt.helpers.js";
+import { comparePassword, hashPassword } from "../helpers/bcrypt.js";
+import { generateToken } from "../helpers/jwt.js";
 
+//Registro del usuario
 export const register = async (req, res) => {
     try {
         const data = matchedData(req, { locations: ["body"] });
 
         const passwordHash = await hashPassword(data.password);
 
+        const profile = data.profile || {};
         const user = await UserModel.create({
             username: data.username,
             email: data.email,
             password: passwordHash,
             role: data.role,
             profile: {
-                first_name: data.profile.first_name,
-                last_name: data.profile.last_name,
-                biography: data.profile.biography,
-                avatar_url: data.profile.avatar_url,
-                birth_date: data.profile.birth_date,
+                firstName: profile.firstName || profile.first_name,
+                lastName: profile.lastName || profile.last_name,
+                biography: profile.biography,
+                avatarUrl: profile.avatarUrl || profile.avatar_url,
+                birthDate: profile.birthDate || profile.birth_date,
             },
         });
         return res
@@ -30,26 +32,19 @@ export const register = async (req, res) => {
     }
 };
 
+//login del usuario
 export const login = async (req, res) => {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
     try {
-        const userEliminado = await UserModel.findOne({
-            username,
-            deleted_at: { $ne: null },
-        });
-        if (userEliminado)
-            return res.status(400).json({
-                ok: false,
-                msg: "El usuario ha sido eliminado debe darse de alta de nuevo",
-            });
-
-        const user = await UserModel.findOne({ username }).select("+password");
-        if (!user)
+        const user = await UserModel.findOne({ email, deleted_at: null }).select("+password");
+        if (!user) {
             return res.status(404).json({ ok: false, msg: "Credenciales inválidas" });
+        }
 
         const passwordExiste = await comparePassword(password, user.password);
-        if (!passwordExiste)
+        if (!passwordExiste) {
             return res.status(404).json({ ok: false, msg: "Credenciales inválidas" });
+        }
 
         const token = generateToken({ _id: user._id, role: user.role });
 
@@ -60,19 +55,24 @@ export const login = async (req, res) => {
 
         return res.status(200).json({ ok: true, msg: "Login exitoso" });
     } catch (error) {
-        return res.status(500).json({ ok: false, msg: "Internal server error" });
+        return res.status(500).json({ ok: false, msg: error.message || "Internal server error" });
     }
 };
 
+//obtener perfil del usuario
 export const getProfile = async (req, res) => {
     try {
-        const user = await UserModel.findById(req.user._id).select("profile -_id");
-        return res.status(200).json({ ok: true, data: user });
+        console.log('REQ.USER:', req.user);
+        if (!req.user) {
+            return res.status(404).json({ ok: false, msg: "Usuario no encontrado o eliminado" });
+        }
+        return res.status(200).json({ ok: true, data: req.user.profile });
     } catch (error) {
         return res.status(500).json({ ok: false, msg: "Internal server error" });
     }
 };
 
+//actualizar el perfil del usuario
 export const updateProfile = async (req, res) => {
     try {
         const data = matchedData(req, { locations: ["body"] });
@@ -80,11 +80,11 @@ export const updateProfile = async (req, res) => {
             req.user._id,
             {
                 profile: {
-                    first_name: data.profile.first_name,
-                    last_name: data.profile.last_name,
+                    firstName: data.profile.firstName,
+                    lastName: data.profile.lastName,
                     biography: data.profile.biography,
-                    avatar_url: data.profile.avatar_url,
-                    birth_date: data.profile.birth_date,
+                    avatarUrl: data.profile.avatarUrl,
+                    birthDate: data.profile.birthDate,
                 },
             },
             { new: true }
@@ -95,6 +95,7 @@ export const updateProfile = async (req, res) => {
     }
 };
 
+//logout del usuario
 export const logout = (req, res) => {
     res.clearCookie("token");
     return res.status(200).json({ ok: true, msg: "Logout exitoso" });

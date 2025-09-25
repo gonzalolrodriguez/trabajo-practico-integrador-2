@@ -1,10 +1,11 @@
 import { UserModel } from "../models/user.model.js";
 
+//obtener todos los usuarios (sin los eliminados)
 export const getAllUsers = async (req, res) => {
     try {
-        const users = await UserModel.find({ deleted_at: null }).populate(
-            "articles"
-        );
+        const users = await UserModel.find({ deleted_at: null })
+            .populate("articles")
+            .populate("comments");
         if (!users || users.length === 0) {
             return res.status(404).json({ ok: false, msg: "No hay usuarios" });
         }
@@ -13,10 +14,12 @@ export const getAllUsers = async (req, res) => {
         return res.status(500).json({ ok: false, msg: "Internal server error" });
     }
 };
+
+//obtener usuario por id (si no fue eliminado)
 export const getUserById = async (req, res) => {
     const { id } = req.params;
     try {
-        const user = await UserModel.findById(id, { deleted_at: null })
+        const user = await UserModel.findOne({ _id: id, deleted_at: null })
             .populate("articles")
             .populate("comments");
         return res.status(200).json({ ok: true, data: user });
@@ -24,6 +27,8 @@ export const getUserById = async (req, res) => {
         return res.status(500).json({ ok: false, msg: "Internal server error" });
     }
 };
+
+//actualizar usuario
 export const updateUser = async (req, res) => {
     const { id } = req.params;
     try {
@@ -33,6 +38,8 @@ export const updateUser = async (req, res) => {
         return res.status(500).json({ ok: false, msg: "Internal server error" });
     }
 };
+
+//eliminación lógica del usuario
 export const deletedUser = async (req, res) => {
     const { id } = req.params;
     try {
@@ -45,5 +52,5 @@ export const deletedUser = async (req, res) => {
     } catch (error) {
         return res.status(500).json({ ok: false, msg: "Internal server error" });
     }
-    w;
+
 };

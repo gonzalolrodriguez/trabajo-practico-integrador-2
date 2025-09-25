@@ -6,7 +6,7 @@ export const idUserValidations = [
         .isMongoId()
         .withMessage("El ID debe ser un ID válido")
         .custom(async (id) => {
-            const user = await UserModel.findById(id, { deleted_at: null });
+            const user = await UserModel.findOne({ _id: id, deleted_at: null });
             if (!user) {
                 throw new Error("El usuario no existe");
             }
@@ -23,9 +23,9 @@ export const userUpdateValidations = [
         .withMessage("El nombre de usuario debe tener entre 3 y 20 caracteres")
         .isAlphanumeric()
         .withMessage("El nombre de usuario solo puede contener letras y números")
-        .custom(async (username) => {
-            const user = await UserModel.findOne({ username });
-            if (user) {
+        .custom(async (username, { req }) => {
+            const user = await UserModel.findOne({ username, deleted_at: null });
+            if (user && user._id.toString() !== req.params.id) {
                 throw new Error("El nombre de usuario ya está en uso");
             }
             return true;

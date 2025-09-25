@@ -2,8 +2,8 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import "dotenv/config";
 import express from "express";
-import { connectDB } from "./src/config/database.js";
-import { routes } from "./src/routes/index.js";
+import starDB from "./src/config/database.js";
+import router from "./src/routes/index.js";
 
 const app = express();
 const PORT = process.env.PORT;
@@ -14,9 +14,9 @@ app.use(cors());
 app.use(cookieParser()); //para poder leer las cookies
 
 // rutas
-app.use("/api", routes);
+app.use("/api", router);
 
 app.listen(PORT, async () => {
-    await connectDB();
+    await starDB();
     console.log(`Servidor escuchando en el puerto ${PORT}`);
 });

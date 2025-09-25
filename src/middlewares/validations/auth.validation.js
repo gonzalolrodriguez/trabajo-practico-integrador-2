@@ -10,7 +10,7 @@ export const registerCreateValidations = [
         .isAlphanumeric()
         .withMessage("El nombre de usuario solo puede contener letras y números")
         .custom(async (username) => {
-            const user = await UserModel.findOne({ username });
+            const user = await UserModel.findOne({ username, deleted_at: null });
             if (user) {
                 throw new Error("El nombre de usuario ya está en uso");
             }
@@ -23,7 +23,7 @@ export const registerCreateValidations = [
         .isEmail()
         .withMessage("Debe ser un email válido")
         .custom(async (email) => {
-            const emailExiste = await UserModel.findOne({ email });
+            const emailExiste = await UserModel.findOne({ email, deleted_at: null });
             if (emailExiste) {
                 throw new Error("El email ya está en uso");
             }

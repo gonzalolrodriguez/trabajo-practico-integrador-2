@@ -10,7 +10,7 @@ import { adminMiddleware } from "../middlewares/admin.middleware.js";
 import {
     idUserValidations,
     userUpdateValidations,
-} from "../middlewares/validations/user.validations.js";
+} from "../middlewares/validations/user.validation.js";
 import { applyValidation } from "../middlewares/validator.js";
 import { matchedDataMiddleware } from "../middlewares/matched_data.middleware.js";
 

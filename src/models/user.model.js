@@ -23,14 +23,33 @@ const UserSchema = new Schema(
         role: {
             type: String,
             enum: ["user", "admin"],
-            default: "user",
         },
         profile: {
-            first_name: { type: String, required: true, minlength: 2, maxlength: 50 },
-            last_name: { type: String, required: true, minlength: 2, maxlength: 30 },
-            biography: { type: String, maxlength: 500 },
-            avatar_url: { type: String },
-            birth_date: { type: Date },
+            firstName: {
+                type: String,
+                required: true,
+                minlength: 2,
+                maxlength: 50,
+                match: [/^[A-Za-z]+$/, "Solo letras"],
+            },
+            lastName: {
+                type: String,
+                required: true,
+                minlength: 2,
+                maxlength: 50,
+                match: [/^[A-Za-z]+$/, "Solo letras"],
+            },
+            biography: {
+                type: String,
+                maxlength: 500,
+            },
+            avatarUrl: {
+                type: String,
+                match: [/^(https?:\/\/)?([\w\d\-_]+\.)+[\w\d\-_]+(\/.*)?$/, "Formato URL inválido"],
+            },
+            birthDate: {
+                type: Date,
+            },
         },
         deleted_at: { type: Date, default: null },
     },

@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+//Conexión a la base de datos
 const starDB = async () => {
     try {
         await mongoose.connect(process.env.MONGODB_URI);
