@@ -1,5 +1,6 @@
 import { matchedData } from "express-validator";
 
+//Middleware para extraer los datos validados
 export const matchedDataMiddleware = (req, res, next) => {
     try {
         const dataVadilidada = matchedData(req, { locations: ["body", "params"] });

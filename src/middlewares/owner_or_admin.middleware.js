@@ -1,11 +1,13 @@
 import { Task } from '../models/Task.js'; // o el modelo que estés usando
 import jwt from 'jsonwebtoken';
 
+// Middleware para verificar si el usuario es dueño del recurso o admin
 export const ownerOrAdmin = async (req, res, next) => {
     try {
         const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
         if (!token) return res.status(401).json({ message: 'Token no proporcionado' });
 
+        //Verificación del token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.user = decoded;
 
